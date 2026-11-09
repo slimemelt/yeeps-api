@@ -1,6 +1,7 @@
 import { SITES, validateContent } from "./content.js";
 import { COOKIE_NAME, createSession, readCookie, sessionCookie, verifyPassword, verifySession } from "./auth.js";
 import { corsHeaders, error, isTrustedOrigin, json } from "./http.js";
+import { validateRedirects } from "./redirects.js";
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const IMAGE_TYPES = new Set(["image/webp", "image/png", "image/jpeg"]);
@@ -48,6 +49,27 @@ async function writeContent(site, request, env, cors) {
   return json({ ok: true }, 200, cors);
 }
 
+const REDIRECTS_KEY = "redirects";
+
+// Public: every site's 404 page reads this to forward short links.
+async function readRedirects(env) {
+  const stored = await env.CONTENT.get(REDIRECTS_KEY);
+  return new Response(stored ?? '{"redirects":[]}', {
+    headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30", "Access-Control-Allow-Origin": "*" },
+  });
+}
+
+async function writeRedirects(request, env, cors) {
+  let clean;
+  try {
+    clean = validateRedirects(await request.json());
+  } catch (problem) {
+    return error(400, problem.message, cors);
+  }
+  await env.CONTENT.put(REDIRECTS_KEY, JSON.stringify({ redirects: clean }));
+  return json({ ok: true }, 200, cors);
+}
+
 async function uploadImage(request, env, cors) {
   const type = (request.headers.get("Content-Type") || "").split(";")[0];
   if (!IMAGE_TYPES.has(type)) return error(415, "unsupported image type", cors);
@@ -82,6 +104,8 @@ export default {
     const media = pathname.match(/^\/media\/([\w.-]+)$/);
     if (media && request.method === "GET") return readImage(media[1], env);
 
+    if (pathname === "/redirects" && request.method === "GET") return readRedirects(env);
+
     if (request.method !== "GET" && !isTrustedOrigin(request, env)) return error(403, "origin not allowed", cors);
 
     const content = pathname.match(/^\/content\/(\w+)$/);
@@ -95,6 +119,10 @@ export default {
     if (content && request.method === "GET") return readContent(content[1], env, cors);
 
     // Everything below needs a signed-in admin.
+    if (pathname === "/redirects" && request.method === "PUT") {
+      if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
+      return writeRedirects(request, env, cors);
+    }
     const writes = (content && request.method === "PUT") || (pathname === "/media" && request.method === "POST");
     if (writes) {
       if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);

@@ -15,7 +15,7 @@ Set `ALLOWED_ORIGINS` in `wrangler.toml` to the site origin, attach a custom dom
 
 ## Routes
 
-`GET /session`, `POST /login`, `POST /logout`, `GET|PUT /content/:site`, `POST /media`, `GET /media/:key`.
+`GET /redirects` (public) and `PUT /redirects` (admin) hold the short links; `GET /session`, `POST /login`, `POST /logout`, `GET|PUT /content/:site`, `POST /media`, `GET /media/:key`.
 
 ## Tests
 

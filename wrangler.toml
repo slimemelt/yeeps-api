@@ -1,4 +1,4 @@
-name = "yeeps-api"
+name = "bloom-networks-api"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 

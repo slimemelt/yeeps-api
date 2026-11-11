@@ -115,3 +115,23 @@ test("bad redirects are rejected", async () => {
   assert.equal((await put([{ ...ok, url: "discord.gg/example" }])).status, 400);
   assert.equal((await put([ok, ok])).status, 400);
 });
+
+test("changing the password replaces the old one and ends other sessions", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  const post = (body, headers = { Cookie: cookie }) =>
+    call(env, "/password", { method: "POST", headers, body: JSON.stringify(body) });
+
+  assert.equal((await post({ current: "open sesame", next: "short" })).status, 400);
+  assert.equal((await post({ current: "not it", next: "a much longer password" })).status, 401);
+  assert.equal((await post({ current: "open sesame", next: "a much longer password" }, {})).status, 401);
+
+  const changed = await post({ current: "open sesame", next: "a much longer password" });
+  assert.equal(changed.status, 200);
+  const fresh = changed.headers.get("Set-Cookie").split(";")[0];
+
+  assert.equal((await (await call(env, "/session", { headers: { Cookie: cookie } })).json()).admin, false);
+  assert.equal((await (await call(env, "/session", { headers: { Cookie: fresh } })).json()).admin, true);
+  assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "open sesame" }) })).status, 401);
+  assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "a much longer password" }) })).status, 200);
+});

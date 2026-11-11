@@ -1,5 +1,5 @@
 import { SITES, validateContent } from "./content.js";
-import { COOKIE_NAME, createSession, readCookie, sessionCookie, verifyPassword, verifySession } from "./auth.js";
+import { COOKIE_NAME, createSession, hashPassword, readCookie, sessionCookie, verifyPassword, verifySession } from "./auth.js";
 import { corsHeaders, error, isTrustedOrigin, json } from "./http.js";
 import { validateRedirects } from "./redirects.js";
 
@@ -8,8 +8,18 @@ const IMAGE_TYPES = new Set(["image/webp", "image/png", "image/jpeg"]);
 const LOGIN_ATTEMPTS = 8;
 const LOGIN_WINDOW_SECONDS = 15 * 60;
 
+const PASSWORD_KEY = "admin:password";
+const MIN_PASSWORD_LENGTH = 12;
+const MAX_PASSWORD_LENGTH = 200;
+
+// A password changed from the admin lives in KV and wins over the ADMIN_PASSWORD_HASH secret.
+const storedPasswordHash = async (env) => (await env.CONTENT.get(PASSWORD_KEY)) || env.ADMIN_PASSWORD_HASH;
+
+// Sessions are signed with the current password hash too, so changing the password signs everyone out.
+const sessionSecret = async (env) => `${env.SESSION_SECRET}:${await storedPasswordHash(env)}`;
+
 async function isAdmin(request, env) {
-  return verifySession(env.SESSION_SECRET, readCookie(request, COOKIE_NAME));
+  return verifySession(await sessionSecret(env), readCookie(request, COOKIE_NAME));
 }
 
 async function login(request, env, cors) {
@@ -24,12 +34,39 @@ async function login(request, env, cors) {
   } catch {
     return error(400, "invalid request", cors);
   }
-  if (!(await verifyPassword(String(password), env.ADMIN_PASSWORD_HASH))) {
+  if (!(await verifyPassword(String(password), await storedPasswordHash(env)))) {
     await env.CONTENT.put(key, String(attempts + 1), { expirationTtl: LOGIN_WINDOW_SECONDS });
     return error(401, "wrong password", cors);
   }
   await env.CONTENT.delete(key);
-  return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(env.SESSION_SECRET)) });
+  return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
+}
+
+async function changePassword(request, env, cors) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const key = `login:${ip}`;
+  const attempts = Number(await env.CONTENT.get(key)) || 0;
+  if (attempts >= LOGIN_ATTEMPTS) return error(429, "too many attempts", cors);
+
+  let current, next;
+  try {
+    ({ current, next } = await request.json());
+  } catch {
+    return error(400, "invalid request", cors);
+  }
+  if (typeof current !== "string" || typeof next !== "string") return error(400, "invalid request", cors);
+  if (!(await verifyPassword(current, await storedPasswordHash(env)))) {
+    await env.CONTENT.put(key, String(attempts + 1), { expirationTtl: LOGIN_WINDOW_SECONDS });
+    return error(401, "wrong password", cors);
+  }
+  if (next.length < MIN_PASSWORD_LENGTH || next.length > MAX_PASSWORD_LENGTH) {
+    return error(400, `new password must be ${MIN_PASSWORD_LENGTH} to ${MAX_PASSWORD_LENGTH} characters`, cors);
+  }
+  if (next === current) return error(400, "new password must be different", cors);
+
+  await env.CONTENT.put(PASSWORD_KEY, await hashPassword(next));
+  await env.CONTENT.delete(key);
+  return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
 }
 
 async function readContent(site, env, cors) {
@@ -119,6 +156,10 @@ export default {
     if (content && request.method === "GET") return readContent(content[1], env, cors);
 
     // Everything below needs a signed-in admin.
+    if (pathname === "/password" && request.method === "POST") {
+      if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
+      return changePassword(request, env, cors);
+    }
     if (pathname === "/redirects" && request.method === "PUT") {
       if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
       return writeRedirects(request, env, cors);

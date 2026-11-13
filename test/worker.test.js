@@ -135,20 +135,3 @@ test("changing the password replaces the old one and ends other sessions", async
   assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "open sesame" }) })).status, 401);
   assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "a much longer password" }) })).status, 200);
 });
-
-test("the preview needs an admin session", async () => {
-  const env = await setup();
-  env.ASSETS = { fetch: async (request) => new Response(`asset:${new URL(request.url).pathname}`) };
-
-  const locked = await call(env, "/preview/");
-  assert.equal(locked.status, 401);
-  assert.doesNotMatch(await locked.text(), /asset:/);
-  assert.equal((await call(env, "/preview/css/base.css")).status, 401);
-
-  const cookie = await signIn(env);
-  const home = await call(env, "/preview/", { headers: { Cookie: cookie } });
-  assert.equal(await home.text(), "asset:/index.html");
-  assert.equal(home.headers.get("Cache-Control"), "private, no-store");
-  const file = await call(env, "/preview/css/base.css", { headers: { Cookie: cookie } });
-  assert.equal(await file.text(), "asset:/css/base.css");
-});

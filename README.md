@@ -13,10 +13,6 @@ Stores site content in KV, images in the same KV namespace (no R2 needed), and g
 
 Set `ALLOWED_ORIGINS` in `wrangler.toml` to the site origin, attach a custom domain (e.g. api.bloomnetworks.net), then put that URL in the site's `js/config.js` as `API_BASE`.
 
-## Preview
-
-`/preview/` serves the files in `preview/` to signed-in admins only (everyone else gets a password form). Replace that folder with a copy of the site to test unreleased work, then deploy.
-
 ## Routes
 
 `GET /redirects` (public) and `PUT /redirects` (admin) hold the short links; `GET /session`, `POST /login`, `POST /logout`, `POST /password` (admin; stores a new hash in KV, which overrides `ADMIN_PASSWORD_HASH`, and signs out other sessions), `GET|PUT /content/:site`, `POST /media`, `GET /media/:key`.

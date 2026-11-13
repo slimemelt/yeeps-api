@@ -1,0 +1,41 @@
+/* Fundings view. The gradient is on the page so it reaches the window edges. */
+.stage[data-view=fund]{aspect-ratio:1047/2230}
+html[data-view=fund]{min-height:100%;background-color:#e50081;background-repeat:no-repeat;background-image:
+  radial-gradient(calc(var(--sw)*1.2) calc(var(--sw)*1.45) at calc(50% + var(--sw)/2) 0, #f9b10f 46%, rgba(249,177,15,0)),
+  radial-gradient(calc(var(--sw)*1.9) calc(var(--sw)*3.2) at calc(50% - var(--sw)/2) 100%, #00a1f5 32%, #e50081 92%)}
+html[data-view=fund] body,.stage[data-view=fund]{background:transparent}
+.stage[data-view=fund]{--tc:#e3e3ff;--lc:#fff}
+html[data-view=fund] #background{display:none}
+
+.fund-text {
+  margin:0;
+  text-align:center;
+  color:#e3e3ff;
+  z-index:3;
+  font-size:calc(var(--fs)*var(--u));
+  line-height:calc(var(--fs)*1.084*var(--u));
+  -webkit-text-stroke:calc(6*var(--u)) #1b0a63;
+  paint-order:stroke fill;
+  stroke-linejoin:round;
+}
+.fund-text p,.fund-text h3{margin:0;font-weight:400}
+.fund-text h3{margin-top:.9em;font-size:1.16em;font-weight:900}
+.fund-text h3+p{margin-top:0}
+.fund-text a{text-decoration:underline;text-decoration-thickness:calc(3*var(--u));text-underline-offset:calc(3*var(--u))}
+.fund-heading {
+  z-index:2;
+  left:0;
+  width:100%;
+  height:calc(134*var(--u));
+  margin:0;
+  text-align:center;
+  text-transform:uppercase;
+  font-size:calc(124*var(--u));
+  font-weight:900;
+  line-height:calc(134*var(--u));
+  letter-spacing:calc(-3*var(--u));
+  color:#2c343a;
+  -webkit-text-stroke:calc(14*var(--u)) #fff;
+  paint-order:stroke fill;
+  stroke-linejoin:round;
+}

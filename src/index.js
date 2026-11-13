@@ -1,6 +1,7 @@
 import { SITES, validateContent } from "./content.js";
 import { COOKIE_NAME, createSession, hashPassword, readCookie, sessionCookie, verifyPassword, verifySession } from "./auth.js";
 import { corsHeaders, error, isTrustedOrigin, json } from "./http.js";
+import { isPreviewPath, servePreview } from "./preview.js";
 import { validateRedirects } from "./redirects.js";
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
@@ -136,6 +137,10 @@ export default {
     const { pathname } = new URL(request.url);
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+
+    if (isPreviewPath(pathname) && ["GET", "HEAD"].includes(request.method)) {
+      return servePreview(request, env, await isAdmin(request, env));
+    }
 
     // Uploaded images are public and cacheable; everything else answers to our own origins only.
     const media = pathname.match(/^\/media\/([\w.-]+)$/);

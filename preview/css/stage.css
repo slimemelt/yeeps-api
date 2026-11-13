@@ -1,0 +1,56 @@
+/* The stage is one Figma artboard (1047 wide) scaled to the viewport.
+ * Every length inside it is written in --u, so the design scales without media queries. */
+.stage {
+  position:relative;
+  z-index:1;
+  width:var(--sw);
+  aspect-ratio:1047/2574;
+  margin:0 auto;
+  overflow:hidden;
+  container-type:inline-size;
+  --u:calc(100cqw/1047);
+  --t:calc(var(--u)*2.2);
+  background:transparent;
+  --tc:var(--navy);
+  --lc:#000;
+  --sdtop:calc(2112*var(--u));
+}
+.stage[data-site=ds]{background:#000;--tc:#e3e3ff;--lc:#fff;--sdtop:calc(2114*var(--u))}
+.stage[data-view=schedule],.stage[data-view=admin]{aspect-ratio:auto}
+.stage[data-view=schedule][data-site=ch]{background:var(--yellow)}
+.pin-green{display:none!important}
+.stage[data-view=schedule] .pin-green{display:block!important}
+.stage[data-view=schedule] .pin-orange{display:none!important}
+.header-home img{width:100%;display:block}
+.stage>*{position:absolute}
+.stage .page{position:relative;display:none;padding:calc(185*var(--u)) 0 calc(400*var(--u));z-index:3}
+.stage[data-view=schedule] #schedule-page,.stage[data-view=admin] #admin-page,.stage[data-view=apps] #apps-page,.stage[data-view=apply] #apply-page{display:block}
+/* Visibility: .only-ch / .only-ds follow the site toggle, .view-* follow the route. */
+.stage[data-site=ch] .only-ds,
+.stage[data-site=ds] .only-ch,
+.stage:not([data-view=home]) .view-home,
+.stage:not([data-view=dmca]) .view-dmca,
+.stage:not([data-view=watch]) .view-watch,
+.stage:not([data-view=fund]) .view-fund,
+.stage:not([data-view=apps]):not([data-view=apply]) .view-apps,
+.stage:is([data-view=schedule],[data-view=admin],[data-view=watch],[data-view=fund],[data-view=apps],[data-view=apply]) .hide-on-subpages{display:none!important}
+img.art,img.layer{display:block;max-width:none;height:auto}
+img.layer{pointer-events:none}
+.fill-image{width:100%;height:100%;display:block}
+.site-footer{left:0;width:100%;bottom:0;height:calc(374*var(--u));z-index:6;pointer-events:none}
+.site-footer>*{position:absolute} .site-footer a{pointer-events:auto}
+.footer-legal {
+  margin:0;
+  color:var(--lc);
+  white-space:nowrap;
+  font-size:calc(18*var(--u));
+  line-height:calc(20*var(--u));
+  font-weight:400;
+  pointer-events:auto;
+}
+.footer-legal a{text-decoration:none;margin-right:calc(18*var(--u))}
+.footer-legal a.bl{margin-right:0;text-decoration:underline}
+.footer-legal a:hover{text-decoration:underline}
+
+/* On desktop the background shapes may run past the sides of the stage; keep the top and bottom edges. */
+@media (min-width:821px){.stage{overflow:visible;clip-path:inset(0 -100vw)}}

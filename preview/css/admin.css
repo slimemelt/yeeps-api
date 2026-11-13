@@ -1,0 +1,180 @@
+/* Admin view. Same language as the schedule page: Londrina Solid, big navy capitals,
+ * pink light-weight labels, pink rules between sections, and the navy bar from the recap strip. */
+html[data-view=admin][data-site=ch] body { background: var(--yellow); }
+html[data-view=admin][data-site=ch] #background { display: none; }
+.stage[data-view=admin][data-site=ch] { background: var(--yellow); }
+
+.admin {
+  --ink: var(--navy);
+  --accent: var(--pink);
+  --tint: rgba(19, 16, 149, .08);
+  --solid: var(--navy);
+  --solid-ink: var(--yellow);
+  width: min(90%, 600px);
+  margin: 0 auto;
+  font-family: "Londrina Solid", "Arial Narrow", system-ui, sans-serif;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+}
+.stage[data-site=ds] .admin {
+  --ink: #fff;
+  --accent: var(--blue);
+  --tint: rgba(255, 255, 255, .12);
+  --solid: var(--blue);
+  --solid-ink: #000;
+}
+
+.admin h1 { margin: 0; font-size: 64px; font-weight: 900; line-height: .9; text-transform: uppercase; }
+.admin .note { margin: 6px 0 0; font-size: 22px; font-weight: 300; line-height: 1.05; color: var(--accent); }
+.admin h1 + .note { min-height: 22px; margin-bottom: 26px; }
+
+/* status labels */
+.admin .tag {
+  display: inline-block;
+  margin: 0 8px 8px 0;
+  padding: 5px 10px 3px;
+  border-radius: 10px;
+  background: var(--solid);
+  color: var(--solid-ink);
+  font-size: 18px;
+  text-transform: uppercase;
+}
+.admin .tag.ok { background: var(--green); color: var(--navy); }
+
+/* which site / which section: big words, the current one is solid */
+.admin .seg, .admin .tabs { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.admin .seg { margin: 0 0 22px; }
+.admin .seg button, .admin .tabs button {
+  font-size: 30px;
+  font-weight: 300;
+  line-height: .95;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.admin .seg button { font-size: 24px; }
+.admin :is(.seg, .tabs) button:hover { color: var(--ink); }
+.admin :is(.seg, .tabs) button[aria-pressed=true] { font-weight: 900; color: var(--ink); }
+.admin .tabs { margin: 0 0 8px; }
+
+/* a section: opens with the pink rule used on the schedule */
+.admin .panel { margin: 22px 0 0; padding: 16px 0 0; border-top: 4px solid var(--accent); }
+.admin .panel > .note:first-child { margin: 0 0 16px; }
+.admin .panel > p:last-child { margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+
+.admin .item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 18px 0;
+  border-top: 2px solid var(--tint);
+}
+.admin .item:first-of-type { padding-top: 0; border-top: 0; }
+.admin .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px 18px; }
+.admin .fields .wide { grid-column: 1 / -1; }
+
+/* fields: a tinted strip with a navy base line, no box */
+.admin label { display: block; font-size: 20px; font-weight: 300; text-transform: uppercase; color: var(--accent); }
+.admin input[type=text], .admin input[type=password], .admin select, .admin textarea {
+  display: block; width: 100%; margin-top: 4px; padding: 9px 10px 6px; box-sizing: border-box;
+  border: 0; border-bottom: 4px solid var(--ink); border-radius: 10px 10px 0 0; background: var(--tint);
+  color: var(--ink); font: inherit; font-size: 24px; font-weight: 400; line-height: 1.1; text-transform: none; outline: 0;
+}
+.admin input:focus, .admin select:focus, .admin textarea:focus { border-bottom-color: var(--accent); }
+.admin ::placeholder { color: var(--ink); opacity: .4; }
+.admin textarea { min-height: 96px; resize: vertical; }
+.admin select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+.admin select option { color: #000; }
+.admin .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 18px 0 0;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--ink);
+}
+.admin input[type=checkbox] {
+  appearance: none;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  border: 4px solid var(--ink);
+  border-radius: 7px;
+  background: transparent;
+}
+.admin input[type=checkbox]:checked { background: var(--ink); box-shadow: inset 0 0 0 3px var(--yellow); }
+.stage[data-site=ds] .admin input[type=checkbox]:checked { box-shadow: inset 0 0 0 3px #000; }
+
+/* buttons */
+.admin .btn, .admin .btn-primary {
+  display: inline-block;
+  padding: 10px 16px 7px;
+  border-radius: 14px;
+  font-size: 24px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.admin .btn-primary { background: var(--solid); color: var(--solid-ink); }
+.admin .btn { box-shadow: inset 0 0 0 4px var(--ink); color: var(--ink); }
+.admin :is(.btn, .btn-primary):hover { filter: brightness(1.25); }
+.admin :is(.btn, .btn-primary, button):focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+
+.admin .item-actions { display: flex; gap: 2px; }
+.admin .item-actions button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink);
+}
+.admin .item-actions button:hover { background: var(--tint); }
+.admin .item-actions :is([data-act=del], [data-redirect=del]) { color: var(--accent); }
+
+.admin .thumb {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  aspect-ratio: 4 / 1;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: #000;
+  object-fit: cover;
+}
+.admin .thumb.card { aspect-ratio: 546 / 220; }
+
+/* the save bar is the schedule's navy recap strip */
+.admin .savebar {
+  position: sticky;
+  bottom: 14px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  margin: 28px 0;
+  padding: 12px 16px 9px;
+  border-radius: 14px;
+  background: var(--navy);
+  color: var(--pink);
+}
+.admin .savebar .btn-primary { background: var(--yellow); color: var(--navy); }
+.admin .savebar .btn { box-shadow: none; padding-inline: 0; color: var(--pink); }
+.admin .savebar #admin-signout { margin-left: auto; }
+.admin #admin-toast { font-size: 22px; color: var(--green); }
+
+.admin #admin-login { max-width: 380px; }
+.admin #admin-login-error { margin: 12px 0 0; font-weight: 400; color: var(--pink); }
+.stage[data-site=ds] .admin #admin-login-error { color: var(--pink); }

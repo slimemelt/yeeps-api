@@ -1,0 +1,16 @@
+/* Live player: the browser's own video controls inside the yellow frame. */
+.player{display:block;border:calc(6*var(--u)) solid var(--yellow);border-radius:calc(30*var(--u));overflow:hidden;background:#000;z-index:3}
+.player video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.player-error {
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(18*var(--u));
+  margin:0;
+  text-align:center;
+  color:#fff;
+  font-size:calc(22*var(--u));
+  display:none;
+  pointer-events:none;
+}
+.player.has-error .player-error{display:block}

@@ -1,0 +1,32 @@
+{
+  "banners": [
+    {
+      "src": "assets/img/banner-10-floors-down.webp",
+      "alt": "10 Floors Down, Saturdays at 4:30pm EST"
+    }
+  ],
+  "shows": [
+    {
+      "title": "10 Floors Down",
+      "img": "assets/img/show-10-floors-down.webp",
+      "desc": "Multiple yeeps are captured and forced to compete for their freedom... and their lives"
+    }
+  ],
+  "schedule": [
+    {
+      "type": "show",
+      "time": "18:00",
+      "title": "10 Floors Down",
+      "by": "",
+      "desc": "Multiple yeeps are captured and forced to compete for their freedom... and their lives",
+      "mature": false,
+      "flash": false
+    }
+  ],
+  "settings": {
+    "date": "",
+    "tz": "All times are Eastern Standard Time",
+    "notes": "Yeeps Don’t Sleep shares the stream with Yeeps Channel and goes on once Channel signs off.\n*mature audiences warning\n^contains flashing lights",
+    "closing": "SIGN OFF"
+  }
+}

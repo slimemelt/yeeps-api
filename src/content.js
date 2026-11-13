@@ -9,6 +9,9 @@ const isText = (value, max) => typeof value === "string" && value.length <= max;
 // Images are either shipped with the site or uploaded to /media on this Worker.
 const isImageUrl = (value) => isText(value, 500) && (/^assets\/img\/[\w./-]+$/.test(value) || /^https:\/\/[^\s"'<>]+$/.test(value));
 
+// A banner link is a web address or a page on the site itself (#schedule); anything else is dropped.
+const isLink = (value) => isText(value, 500) && (/^https?:\/\/[^\s"'<>]+$/i.test(value) || /^#[\w/-]+$/.test(value));
+
 function fail(message) {
   throw new Error(message);
 }
@@ -24,7 +27,9 @@ export function validateContent(data) {
   const clean = {
     banners: banners.map((b) => {
       if (!isImageUrl(b?.src)) fail("banner image is not allowed");
-      return { src: b.src, alt: isText(b.alt, 300) ? b.alt : "" };
+      const banner = { src: b.src, alt: isText(b.alt, 300) ? b.alt : "" };
+      if (isLink(b.link)) banner.link = b.link;
+      return banner;
     }),
     schedule: schedule.map((e) => {
       if (!ENTRY_TYPES.has(e?.type)) fail("unknown schedule entry type");

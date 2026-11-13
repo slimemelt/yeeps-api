@@ -37,3 +37,18 @@ test("rejects unknown schedule entry types and oversized lists", () => {
   big.banners = Array(21).fill(big.banners[0]);
   assert.throws(() => validateContent(big), /banners/);
 });
+
+test("banner links are kept only when they are web addresses or site pages", () => {
+  const withLinks = (...links) => {
+    const data = valid();
+    data.banners = links.map((link) => ({ src: "assets/img/banner.webp", alt: "", link }));
+    return validateContent(data).banners.map((b) => b.link);
+  };
+  assert.deepEqual(withLinks("https://example.com/show", "#schedule", "javascript:alert(1)", "", undefined), [
+    "https://example.com/show",
+    "#schedule",
+    undefined,
+    undefined,
+    undefined,
+  ]);
+});

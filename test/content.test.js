@@ -52,3 +52,23 @@ test("banner links are kept only when they are web addresses or site pages", () 
     undefined,
   ]);
 });
+
+const post = (extra = {}) => ({ id: "hello", title: "Hello", date: "2026-11-13", img: "", summary: "", body: "Hi", published: true, ...extra });
+
+test("posts are cleaned and bad ones are rejected", () => {
+  const data = valid();
+  data.posts = [post({ extra: "dropped" })];
+  assert.deepEqual(Object.keys(validateContent(data).posts[0]).sort(), ["body", "date", "id", "img", "published", "summary", "title"]);
+  for (const bad of [post({ id: "Has Spaces" }), post({ date: "soon" }), post({ img: "javascript:alert(1)" })]) {
+    const broken = valid();
+    broken.posts = [bad];
+    assert.throws(() => validateContent(broken));
+  }
+  const twice = valid();
+  twice.posts = [post(), post()];
+  assert.throws(() => validateContent(twice), /share the web address/);
+});
+
+test("content without posts still works", () => {
+  assert.deepEqual(validateContent(valid()).posts, []);
+});

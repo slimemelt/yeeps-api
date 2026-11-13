@@ -135,3 +135,21 @@ test("changing the password replaces the old one and ends other sessions", async
   assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "open sesame" }) })).status, 401);
   assert.equal((await call(env, "/login", { method: "POST", body: JSON.stringify({ password: "a much longer password" }) })).status, 200);
 });
+
+test("drafts stay private: only an admin asking for drafts sees them", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  const posts = [
+    { id: "live", title: "Live", date: "2026-11-13", img: "", summary: "", body: "x", published: true },
+    { id: "wip", title: "Wip", date: "2026-11-14", img: "", summary: "", body: "x", published: false },
+  ];
+  const put = await call(env, "/content/ch", { method: "PUT", headers: { Cookie: cookie }, body: JSON.stringify({ ...content, posts }) });
+  assert.equal(put.status, 200);
+
+  const ids = async (path, headers = {}) => (await (await call(env, path, { headers })).json()).posts.map((p) => p.id);
+  assert.deepEqual(await ids("/content/ch"), ["live"]);
+  assert.deepEqual(await ids("/content/ch?drafts=1"), ["live"]);
+  assert.deepEqual(await ids("/content/ch?drafts=1", { Cookie: cookie }), ["live", "wip"]);
+  const adminRead = await call(env, "/content/ch?drafts=1", { headers: { Cookie: cookie } });
+  assert.equal(adminRead.headers.get("Cache-Control"), "private, no-store");
+});

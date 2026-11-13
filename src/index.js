@@ -69,10 +69,17 @@ async function changePassword(request, env, cors) {
   return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
 }
 
-async function readContent(site, env, cors) {
+// Unpublished posts are drafts: only a signed-in admin asking with ?drafts gets them, and never from a shared cache.
+async function readContent(site, request, env, cors) {
   const stored = await env.CONTENT.get(`content:${site}`);
   if (stored === null) return error(404, "no saved content", cors);
-  return new Response(stored, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30", ...cors } });
+  const wantsDrafts = new URL(request.url).searchParams.has("drafts") && (await isAdmin(request, env));
+  if (wantsDrafts) {
+    return new Response(stored, { headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store", ...cors } });
+  }
+  const data = JSON.parse(stored);
+  if (data.posts) data.posts = data.posts.filter((post) => post.published);
+  return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30", ...cors } });
 }
 
 async function writeContent(site, request, env, cors) {
@@ -153,7 +160,7 @@ export default {
     if (pathname === "/logout" && request.method === "POST") {
       return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie("", 0) });
     }
-    if (content && request.method === "GET") return readContent(content[1], env, cors);
+    if (content && request.method === "GET") return readContent(content[1], request, env, cors);
 
     // Everything below needs a signed-in admin.
     if (pathname === "/password" && request.method === "POST") {

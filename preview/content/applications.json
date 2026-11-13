@@ -1,0 +1,34 @@
+{
+  "applications": [
+    {
+      "id": "discord-mod",
+      "title": "Discord Moderator",
+      "summary": "Help keep the Yeeps Channel + Yeeps Don’t Sleep Discord a fun, welcoming place to hang out and watch together.",
+      "open": false,
+      "intro": [
+        { "p": "Help keep the Yeeps Channel + Yeeps Don’t Sleep Discord a fun, welcoming place to hang out and watch together." },
+        { "p": "What you’ll do", "list": [
+          "Enforce the server rules fairly and consistently",
+          "Handle warnings, timeouts and bans with our moderation bot",
+          "Answer questions and help members who ask for help",
+          "Check in on reports and tickets",
+          "Work with the rest of the team in the staff channels"
+        ] },
+        { "p": "What we’re looking for", "list": [
+          "You’re active on Discord, and you can tell us roughly when",
+          "You’re calm, fair and patient, even when people aren’t",
+          "You’ve read the server rules and agree with them",
+          "You can keep staff conversations private",
+          "You’re comfortable learning new tools, since we use a custom moderation bot"
+        ] },
+        { "p": "How it works" },
+        { "p": "New moderators start with limited permissions and earn more over time. Our team has three tiers: Jr Mod, Mod and Sr Mod. You’ll get a mod guide that covers every rule and every bot command you can use." },
+        { "p": "Every application is read by the team, and we’ll message you on Discord with an answer, so keep your DMs open." }
+      ],
+      "questions": [
+        { "id": "choice", "type": "choice", "title": "Multiple choice", "options": ["A", "B", "C", "D"] },
+        { "id": "long", "type": "long", "title": "Long response", "placeholder": "write your response here..." }
+      ]
+    }
+  ]
+}

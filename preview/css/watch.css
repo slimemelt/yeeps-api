@@ -1,0 +1,11 @@
+/* Watch view */
+.chat-text{margin:0;text-align:center;font-size:calc(40*var(--u));line-height:calc(50*var(--u));color:var(--lc);z-index:3}
+.chat-text a {
+  font-size:calc(54*var(--u));
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:underline;
+  text-decoration-thickness:calc(3*var(--u));
+  text-underline-offset:calc(3*var(--u));
+}
+.stage[data-site=ds] .chat-text a{color:var(--blue)}

@@ -1,0 +1,133 @@
+/* Positions of the art-directed elements, measured from the Figma export.
+ * Units: --u is 1/1047 of the stage width, so every number below is a Figma pixel. */
+
+/* shared */
+.header-home{z-index:2;left:5.79%;top:calc(30.6*var(--u));width:5.62%}
+.header-mark-ds{left:5.5%;top:calc(44*var(--u));width:6.42%;z-index:2}
+.header-rule{z-index:2;left:5.54%;top:calc(127*var(--u));width:87.78%;height:calc(4*var(--u));background:var(--blue);border-radius:99px}
+.plain-link{text-decoration:none}
+.fill-image{width:100%;height:100%;display:block}
+.menu-button{z-index:20;left:84.97%;top:calc(38.8*var(--u));width:6.72%}
+.menu-button-close{left:-3.98%;top:1.14%;width:107.95%}
+.site-toggle{z-index:20;left:69.69%;top:calc(50.4*var(--u));width:13.75%}
+
+/* decorative corner shape, home and DMCA only */
+.corner-shape-ch,.corner-shape-ds{z-index:5;left:85.96%;top:calc(1460*var(--u));width:14.33%}
+
+/* loader */
+.loader-pin{left:26.58%;top:0.11%;width:61.06%}
+.loader-wordmark{left:0.29%;top:78.38%;width:84.2%}
+.loader-dots{left:85.2%;top:95.38%;width:14.29%}
+
+/* home */
+/* Full, uncropped artwork: 1 art unit = 0.148386u, origin offset by the shapes that hang outside the page */
+.home-shapes{left:calc(-386.1*var(--u));top:calc(-417.9*var(--u));width:calc(1584.4*var(--u))}
+.home-banner{z-index:2;left:5.54%;top:calc(159*var(--u));width:87.78%;height:calc(227*var(--u))}
+.home-dots{z-index:3;left:7.35%;top:calc(356*var(--u))}
+.home-logo-ch{left:40.76%;top:calc(438.4*var(--u));width:18.49%}
+.home-logo-ds{left:41.45%;top:calc(415.6*var(--u));width:15.59%}
+.home-about{left:5.25%;top:calc(570*var(--u));width:89.49%}
+.home-watch-more-ch{left:40.38%;top:calc(731.2*var(--u));width:19.22%}
+.home-watch-more-ds{left:40.38%;top:calc(731.2*var(--u));width:19.22%}
+.home-youtube{left:15.28%;top:calc(806*var(--u));width:69.15%;height:calc(166*var(--u))}
+.home-youtube-ch{left:15.53%;top:calc(808.8*var(--u));width:68.77%}
+.home-youtube-ds{left:15.53%;top:calc(808.8*var(--u));width:68.77%}
+.home-socials{left:0;top:calc(1009*var(--u));width:100%}
+.home-schedule-frame-ch{left:6.53%;top:calc(1136.7*var(--u));width:87.17%}
+.home-schedule-frame-ds{left:6.46%;top:calc(1137.3*var(--u));width:86.85%}
+.home-schedule-card{left:7.26%;top:calc(1146*var(--u));width:85.2%;height:calc(450*var(--u))}
+.home-schedule-fade{left:8.02%;top:calc(1146*var(--u));width:84.72%;height:calc(444*var(--u))}
+.home-schedule-label{left:42.33%;top:calc(1182*var(--u));width:13.37%}
+.home-full-schedule-ch{left:36.48%;top:calc(1540*var(--u));width:27.01%}
+.home-full-schedule-ds{left:40.92%;top:calc(1555.2*var(--u));width:18.15%}
+.home-full-schedule-link{left:35.82%;top:calc(1535*var(--u));width:28.27%;height:calc(40*var(--u))}
+.home-featured-title-ch{left:22.06%;top:calc(1709.6*var(--u));width:55.97%}
+.home-featured-title-ds{left:22.06%;top:calc(1709.6*var(--u));width:55.97%}
+.home-featured-card{left:23.4%;top:calc(1791*var(--u));width:52.15%;height:calc(220*var(--u))}
+.home-featured-name{left:11.46%;top:calc(2036*var(--u));width:77.08%}
+.home-featured-blurb{left:13.28%;width:73.45%}
+.footer-discord-disc {
+  left:calc(776.8*var(--u));
+  top:calc(175.8*var(--u));
+  width:calc(215.6*var(--u));
+  aspect-ratio:1;
+  border-radius:50%;
+  background:#2b3439;
+}
+.footer-discord-mark{left:81.18%;top:calc(255*var(--u));width:6.69%}
+.footer-discord-link{border-radius:50%;left:74.21%;top:calc(176*var(--u));width:20.63%;height:calc(216*var(--u))}
+
+/* fund */
+.fund-shapes{z-index:1;left:calc(-400*var(--u));top:0;width:calc(1847*var(--u))}
+.fund-logo{z-index:3;left:calc(123.5*var(--u));top:calc(120*var(--u));width:calc(800*var(--u))}
+.fund-intro-text{--fs:31;left:5.25%;top:calc(456*var(--u));width:89.49%;height:calc(570*var(--u))}
+.fund-why-heading{top:calc(1068*var(--u))}
+.fund-why-text{--fs:31;left:4.39%;top:calc(1245*var(--u));width:91.21%;height:calc(204*var(--u))}
+.fund-pitch-heading{top:calc(1485*var(--u))}
+.fund-pitch-text{--fs:31;left:4.4%;top:calc(1664*var(--u));width:91.2%;height:calc(168*var(--u))}
+
+/* watch */
+.watch-bg{left:calc(-415.5*var(--u));top:calc(-445.1*var(--u));width:calc(1647.1*var(--u))}
+.watch-title{left:30.41%;top:calc(157.6*var(--u));width:34.19%;z-index:3}
+.watch-player{left:7.35%;top:calc(336*var(--u));width:85.2%;height:calc(507*var(--u))}
+.watch-schedule-card{left:7.74%;top:calc(880*var(--u));width:85.2%;height:calc(450*var(--u))}
+.watch-schedule-fade{left:8.02%;top:calc(883*var(--u));width:84.72%;height:calc(444*var(--u))}
+.watch-schedule-label{left:42.33%;top:calc(922*var(--u));width:13.37%;z-index:3}
+.watch-schedule-link{z-index:4;left:7.74%;top:calc(880*var(--u));width:85.2%;height:calc(450*var(--u))}
+.watch-mist-banner{left:7.79%;top:calc(1369.6*var(--u));width:85.84%;height:calc(219.6*var(--u))}
+.watch-chat-text{left:0;top:calc(1633*var(--u));width:100%}
+.watch-discord{left:16.33%;top:calc(1779*var(--u));width:67.33%;height:calc(137.5*var(--u))}
+
+/* dmca */
+.dmca-bg{left:calc(-415.5*var(--u));top:calc(-445.1*var(--u));width:calc(1647.1*var(--u))}
+.dmca-title-ch{left:6.76%;top:calc(209.8*var(--u));width:19.25%}
+.dmca-title-ds{left:6.76%;top:calc(209.8*var(--u));width:19.25%}
+/* body copy is live text styled like the old artwork: light and bold Londrina, outlined */
+.dmca-text {
+  left:6.44%;
+  top:calc(305*var(--u));
+  width:81.49%;
+  margin:0;
+  font-size:calc(56*var(--u));
+  font-weight:300;
+  line-height:1;
+  color:#2c343a;
+  -webkit-text-stroke:calc(7*var(--u)) #fff;
+  paint-order:stroke fill;
+  stroke-linejoin:round;
+}
+.dmca-text span{display:block}
+.dmca-text b,.dmca-text a{font-weight:900}
+.dmca-text a{color:inherit;text-decoration:none}
+.stage[data-site=ds] .dmca-text{color:#edecff;-webkit-text-stroke-color:#000}
+
+/* schedule */
+.schedule-swoosh-ch{position:absolute;left:calc(-4.00*var(--t));top:calc(66.00*var(--t));width:calc(330.00*var(--t))}
+.schedule-swoosh-ds{position:absolute;left:calc(-6.00*var(--t));top:calc(82.00*var(--t));width:calc(332.00*var(--t))}
+.schedule-logo-ch{left:calc(-12.00*var(--t));top:calc(-12.00*var(--t));width:calc(137.00*var(--t))}
+.schedule-logo-ds{left:calc(7.00*var(--t));top:calc(18.00*var(--t));width:calc(99.00*var(--t))}
+.schedule-badge-ch{left:calc(212.00*var(--t));top:calc(24.00*var(--t));width:calc(102.00*var(--t))}
+.schedule-badge-ds{left:calc(210.00*var(--t));top:calc(16.00*var(--t));width:calc(92.00*var(--t))}
+
+/* menu */
+.menu-panel{z-index:10;left:0;top:0;width:100%;height:calc(1140*var(--u))}
+/* Full panel artwork: the flower hangs past the panel, and the top 1073 art units sit above the page */
+.menu-panel-art{left:0;top:calc(-159.2*var(--u));width:calc(1592.1*var(--u))}
+.menu-home{left:2.96%;top:13.8%;width:23.78%;height:9.03%}
+.menu-schedule{left:2.77%;top:25.13%;width:46.42%;height:9.12%}
+.menu-watch{left:2.77%;top:35.49%;width:27.32%;height:9.38%}
+.menu-fundings{left:2.96%;top:46.11%;width:45.65%;height:9.56%}
+.menu-discord{left:2.96%;top:58.76%;width:5.16%;height:4.25%}
+.menu-youtube{left:7.83%;top:58.76%;width:4.78%;height:4.25%}
+.menu-tiktok{left:12.51%;top:58.76%;width:3.34%;height:4.25%}
+.menu-instagram{left:15.76%;top:58.76%;width:4.01%;height:4.25%}
+.menu-settings{left:19.48%;top:58.76%;width:4.01%;height:4.25%}
+
+/* foot */
+.footer-scene-ch{left:-5.73%;top:calc(0*var(--u));width:111.46%}
+.footer-scene-ds{left:-5.73%;top:calc(0*var(--u));width:111.46%}
+.footer-legal-text{left:8.69%;top:calc(233*var(--u));width:31.52%}
+.footer-copyright{font-weight:300}
+.footer-bloom-ch{left:8.75%;top:calc(303.6*var(--u));width:9.47%}
+.footer-bloom-ds{left:8.75%;top:calc(303.6*var(--u));width:9.47%}
+.footer-bloom-link{left:8.21%;top:calc(298*var(--u));width:10.89%;height:calc(44*var(--u))}

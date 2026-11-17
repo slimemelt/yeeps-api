@@ -93,7 +93,7 @@ test("redirects are public to read and need a sign-in to change", async () => {
   const env = await setup();
   const empty = await call(env, "/redirects", { headers: { Origin: "https://bloomnetworks.net" } });
   assert.equal(empty.headers.get("Access-Control-Allow-Origin"), "*");
-  assert.deepEqual(await empty.json(), { redirects: [] });
+  assert.deepEqual((await empty.json()).redirects, []);
 
   const body = JSON.stringify({ redirects: [{ host: "bloomnetworks.net", path: "/Discord/", url: "https://discord.gg/example" }] });
   assert.equal((await call(env, "/redirects", { method: "PUT", body })).status, 401);
@@ -152,4 +152,38 @@ test("drafts stay private: only an admin asking for drafts sees them", async () 
   assert.deepEqual(await ids("/content/ch?drafts=1", { Cookie: cookie }), ["live", "wip"]);
   const adminRead = await call(env, "/content/ch?drafts=1", { headers: { Cookie: cookie } });
   assert.equal(adminRead.headers.get("Cache-Control"), "private, no-store");
+});
+
+test("a save from a stale redirects list is refused", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  const put = (body) => call(env, "/redirects", { method: "PUT", headers: { Cookie: cookie }, body: JSON.stringify(body) });
+  const row = (path) => ({ host: "bloomnetworks.net", path, url: "https://example.com" });
+
+  const opened = (await (await call(env, "/redirects")).json()).version;
+  const first = await put({ redirects: [row("one")], version: opened });
+  assert.equal(first.status, 200);
+
+  // A second tab still holding the old version must not overwrite the newer list.
+  assert.equal((await put({ redirects: [], version: opened })).status, 409);
+  assert.equal((await (await call(env, "/redirects")).json()).redirects.length, 1);
+
+  const fresh = (await first.json()).version;
+  assert.equal((await put({ redirects: [row("one"), row("two")], version: fresh })).status, 200);
+});
+
+test("a storage failure answers with a readable error the browser can see", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  env.CONTENT.put = async () => {
+    throw new Error("KV put failed: too many writes");
+  };
+  const response = await call(env, "/redirects", {
+    method: "PUT",
+    headers: { Cookie: cookie },
+    body: JSON.stringify({ redirects: [] }),
+  });
+  assert.equal(response.status, 500);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), ORIGIN);
+  assert.match((await response.json()).error, /try again/);
 });

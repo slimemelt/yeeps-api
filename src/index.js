@@ -22,11 +22,21 @@ async function isAdmin(request, env) {
   return verifySession(await sessionSecret(env), readCookie(request, COOKIE_NAME));
 }
 
-async function login(request, env, cors) {
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const key = `login:${ip}`;
+const clientKey = (request) => `login:${request.headers.get("CF-Connecting-IP") || "unknown"}`;
+
+// Counts wrong-password attempts per address; returns a response once the limit is reached.
+async function attemptsLeft(request, env) {
+  return (Number(await env.CONTENT.get(clientKey(request))) || 0) < LOGIN_ATTEMPTS;
+}
+
+async function recordFailure(request, env) {
+  const key = clientKey(request);
   const attempts = Number(await env.CONTENT.get(key)) || 0;
-  if (attempts >= LOGIN_ATTEMPTS) return error(429, "too many attempts", cors);
+  await env.CONTENT.put(key, String(attempts + 1), { expirationTtl: LOGIN_WINDOW_SECONDS });
+}
+
+async function login(request, env, cors) {
+  if (!(await attemptsLeft(request, env))) return error(429, "too many attempts", cors);
 
   let password = "";
   try {
@@ -35,18 +45,15 @@ async function login(request, env, cors) {
     return error(400, "invalid request", cors);
   }
   if (!(await verifyPassword(String(password), await storedPasswordHash(env)))) {
-    await env.CONTENT.put(key, String(attempts + 1), { expirationTtl: LOGIN_WINDOW_SECONDS });
+    await recordFailure(request, env);
     return error(401, "wrong password", cors);
   }
-  await env.CONTENT.delete(key);
+  await env.CONTENT.delete(clientKey(request));
   return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
 }
 
 async function changePassword(request, env, cors) {
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const key = `login:${ip}`;
-  const attempts = Number(await env.CONTENT.get(key)) || 0;
-  if (attempts >= LOGIN_ATTEMPTS) return error(429, "too many attempts", cors);
+  if (!(await attemptsLeft(request, env))) return error(429, "too many attempts", cors);
 
   let current, next;
   try {
@@ -56,7 +63,7 @@ async function changePassword(request, env, cors) {
   }
   if (typeof current !== "string" || typeof next !== "string") return error(400, "invalid request", cors);
   if (!(await verifyPassword(current, await storedPasswordHash(env)))) {
-    await env.CONTENT.put(key, String(attempts + 1), { expirationTtl: LOGIN_WINDOW_SECONDS });
+    await recordFailure(request, env);
     return error(401, "wrong password", cors);
   }
   if (next.length < MIN_PASSWORD_LENGTH || next.length > MAX_PASSWORD_LENGTH) {
@@ -65,7 +72,7 @@ async function changePassword(request, env, cors) {
   if (next === current) return error(400, "new password must be different", cors);
 
   await env.CONTENT.put(PASSWORD_KEY, await hashPassword(next));
-  await env.CONTENT.delete(key);
+  await env.CONTENT.delete(clientKey(request));
   return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
 }
 
@@ -95,23 +102,39 @@ async function writeContent(site, request, env, cors) {
 
 const REDIRECTS_KEY = "redirects";
 
+// A short fingerprint of what is stored, so a save can tell if the list changed since it was opened.
+async function versionOf(stored) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(stored ?? ""));
+  return [...new Uint8Array(digest).slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 // Public: every site's 404 page reads this to forward short links.
 async function readRedirects(env) {
   const stored = await env.CONTENT.get(REDIRECTS_KEY);
-  return new Response(stored ?? '{"redirects":[]}', {
-    headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=30", "Access-Control-Allow-Origin": "*" },
+  const { redirects } = stored ? JSON.parse(stored) : { redirects: [] };
+  return json({ redirects, version: await versionOf(stored) }, 200, {
+    "Cache-Control": "public, max-age=30",
+    "Access-Control-Allow-Origin": "*",
   });
 }
 
 async function writeRedirects(request, env, cors) {
+  let body;
   let clean;
   try {
-    clean = validateRedirects(await request.json());
+    body = await request.json();
+    clean = validateRedirects(body);
   } catch (problem) {
     return error(400, problem.message, cors);
   }
-  await env.CONTENT.put(REDIRECTS_KEY, JSON.stringify({ redirects: clean }));
-  return json({ ok: true }, 200, cors);
+  const stored = await env.CONTENT.get(REDIRECTS_KEY);
+  // A tab that opened an older list must not overwrite a newer one.
+  if (body.version !== undefined && body.version !== (await versionOf(stored))) {
+    return error(409, "The redirects changed since you opened them. Reload this page, then make your change again.", cors);
+  }
+  const next = JSON.stringify({ redirects: clean });
+  await env.CONTENT.put(REDIRECTS_KEY, next);
+  return json({ ok: true, version: await versionOf(next) }, 200, cors);
 }
 
 async function uploadImage(request, env, cors) {
@@ -137,45 +160,55 @@ async function readImage(key, env) {
   });
 }
 
+async function route(request, env, cors) {
+  const { pathname } = new URL(request.url);
+
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+
+  // Uploaded images are public and cacheable; everything else answers to our own origins only.
+  const media = pathname.match(/^\/media\/([\w.-]+)$/);
+  if (media && request.method === "GET") return readImage(media[1], env);
+
+  if (pathname === "/redirects" && request.method === "GET") return readRedirects(env);
+
+  if (request.method !== "GET" && !isTrustedOrigin(request, env)) return error(403, "origin not allowed", cors);
+
+  const content = pathname.match(/^\/content\/(\w+)$/);
+  if (content && !SITES.includes(content[1])) return error(404, "unknown site", cors);
+
+  if (pathname === "/session" && request.method === "GET") return json({ admin: await isAdmin(request, env) }, 200, cors);
+  if (pathname === "/login" && request.method === "POST") return login(request, env, cors);
+  if (pathname === "/logout" && request.method === "POST") {
+    return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie("", 0) });
+  }
+  if (content && request.method === "GET") return readContent(content[1], request, env, cors);
+
+  // Everything below needs a signed-in admin.
+  if (pathname === "/password" && request.method === "POST") {
+    if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
+    return changePassword(request, env, cors);
+  }
+  if (pathname === "/redirects" && request.method === "PUT") {
+    if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
+    return writeRedirects(request, env, cors);
+  }
+  const writes = (content && request.method === "PUT") || (pathname === "/media" && request.method === "POST");
+  if (writes) {
+    if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
+    return content ? writeContent(content[1], request, env, cors) : uploadImage(request, env, cors);
+  }
+  return error(404, "not found", cors);
+}
+
 export default {
   async fetch(request, env) {
     const cors = corsHeaders(request, env);
-    const { pathname } = new URL(request.url);
-
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-
-    // Uploaded images are public and cacheable; everything else answers to our own origins only.
-    const media = pathname.match(/^\/media\/([\w.-]+)$/);
-    if (media && request.method === "GET") return readImage(media[1], env);
-
-    if (pathname === "/redirects" && request.method === "GET") return readRedirects(env);
-
-    if (request.method !== "GET" && !isTrustedOrigin(request, env)) return error(403, "origin not allowed", cors);
-
-    const content = pathname.match(/^\/content\/(\w+)$/);
-    if (content && !SITES.includes(content[1])) return error(404, "unknown site", cors);
-
-    if (pathname === "/session" && request.method === "GET") return json({ admin: await isAdmin(request, env) }, 200, cors);
-    if (pathname === "/login" && request.method === "POST") return login(request, env, cors);
-    if (pathname === "/logout" && request.method === "POST") {
-      return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie("", 0) });
+    try {
+      return await route(request, env, cors);
+    } catch (problem) {
+      // Without this the browser only sees a dropped request and reports "Failed to fetch".
+      console.error(problem);
+      return error(500, "The server could not finish that. Wait a moment and try again.", cors);
     }
-    if (content && request.method === "GET") return readContent(content[1], request, env, cors);
-
-    // Everything below needs a signed-in admin.
-    if (pathname === "/password" && request.method === "POST") {
-      if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
-      return changePassword(request, env, cors);
-    }
-    if (pathname === "/redirects" && request.method === "PUT") {
-      if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
-      return writeRedirects(request, env, cors);
-    }
-    const writes = (content && request.method === "PUT") || (pathname === "/media" && request.method === "POST");
-    if (writes) {
-      if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
-      return content ? writeContent(content[1], request, env, cors) : uploadImage(request, env, cors);
-    }
-    return error(404, "not found", cors);
   },
 };

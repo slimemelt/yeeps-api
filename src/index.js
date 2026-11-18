@@ -1,7 +1,7 @@
 import { SITES, validateContent } from "./content.js";
 import { COOKIE_NAME, createSession, hashPassword, readCookie, sessionCookie, verifyPassword, verifySession } from "./auth.js";
 import { corsHeaders, error, isTrustedOrigin, json } from "./http.js";
-import { validateRedirects } from "./redirects.js";
+import { validateRedirects, withBuiltIns } from "./redirects.js";
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const IMAGE_TYPES = new Set(["image/webp", "image/png", "image/jpeg"]);
@@ -114,7 +114,7 @@ async function versionOf(stored) {
 async function readRedirects(env) {
   const stored = await env.CONTENT.get(REDIRECTS_KEY);
   const { redirects } = stored ? JSON.parse(stored) : { redirects: [] };
-  return json({ redirects, version: await versionOf(stored) }, 200, {
+  return json({ redirects: withBuiltIns(redirects), version: await versionOf(stored) }, 200, {
     "Cache-Control": "public, max-age=30",
     "Access-Control-Allow-Origin": "*",
   });

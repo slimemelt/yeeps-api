@@ -37,3 +37,12 @@ export function validateRedirects(data) {
     return { host: row.host, path, url: cleanUrl(row.url) };
   });
 }
+
+// Links that must always work, whatever is saved from the admin. A saved redirect with the same
+// site and path replaces the built-in one.
+export const BUILT_IN_REDIRECTS = [{ host: "bloomnetworks.net", path: "discord", url: "https://discord.gg/jJfA8umTWp" }];
+
+export function withBuiltIns(saved) {
+  const taken = new Set(saved.map((row) => `${row.host}/${row.path}`));
+  return [...saved, ...BUILT_IN_REDIRECTS.filter((row) => !taken.has(`${row.host}/${row.path}`))];
+}

@@ -93,7 +93,7 @@ test("redirects are public to read and need a sign-in to change", async () => {
   const env = await setup();
   const empty = await call(env, "/redirects", { headers: { Origin: "https://bloomnetworks.net" } });
   assert.equal(empty.headers.get("Access-Control-Allow-Origin"), "*");
-  assert.deepEqual((await empty.json()).redirects, []);
+  assert.deepEqual((await empty.json()).redirects.map((r) => r.path), ["discord"]); // only the built-in link
 
   const body = JSON.stringify({ redirects: [{ host: "bloomnetworks.net", path: "/Discord/", url: "https://discord.gg/example" }] });
   assert.equal((await call(env, "/redirects", { method: "PUT", body })).status, 401);
@@ -166,7 +166,7 @@ test("a save from a stale redirects list is refused", async () => {
 
   // A second tab still holding the old version must not overwrite the newer list.
   assert.equal((await put({ redirects: [], version: opened })).status, 409);
-  assert.equal((await (await call(env, "/redirects")).json()).redirects.length, 1);
+  assert.deepEqual((await (await call(env, "/redirects")).json()).redirects.map((r) => r.path), ["one", "discord"]);
 
   const fresh = (await first.json()).version;
   assert.equal((await put({ redirects: [row("one"), row("two")], version: fresh })).status, 200);
@@ -197,4 +197,16 @@ test("the list before each redirects save is kept for recovery", async () => {
   await put([row("discord")]);
   await put([]);
   assert.deepEqual(JSON.parse(await env.CONTENT.get("redirects:previous")).redirects.map((r) => r.path), ["discord"]);
+});
+
+test("the Discord short link is built in and a saved one overrides it", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  const find = async () => (await (await call(env, "/redirects")).json()).redirects.find((r) => r.path === "discord");
+
+  assert.equal((await find()).url, "https://discord.gg/jJfA8umTWp");
+
+  const body = JSON.stringify({ redirects: [{ host: "bloomnetworks.net", path: "discord", url: "https://discord.gg/other" }] });
+  await call(env, "/redirects", { method: "PUT", headers: { Cookie: cookie }, body });
+  assert.equal((await find()).url, "https://discord.gg/other");
 });

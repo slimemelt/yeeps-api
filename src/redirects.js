@@ -1,5 +1,3 @@
-// Short links such as bloomnetworks.net/discord. Stored as one flat list and served publicly,
-// so each site's 404 page can look its path up and forward the visitor.
 
 export const HOSTS = ["bloomnetworks.net", "yeeps.bloomnetworks.net", "monarch.bloomnetworks.net"];
 export const MAX_REDIRECTS = 300;
@@ -38,8 +36,6 @@ export function validateRedirects(data) {
   });
 }
 
-// Links that must always work, whatever is saved from the admin. A saved redirect with the same
-// site and path replaces the built-in one.
 export const BUILT_IN_REDIRECTS = [{ host: "bloomnetworks.net", path: "discord", url: "https://discord.gg/jJfA8umTWp" }];
 
 export function withBuiltIns(saved) {

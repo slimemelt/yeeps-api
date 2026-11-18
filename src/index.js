@@ -101,6 +101,8 @@ async function writeContent(site, request, env, cors) {
 }
 
 const REDIRECTS_KEY = "redirects";
+// The list as it was before the latest save, kept so a bad save can be undone.
+const REDIRECTS_PREVIOUS_KEY = "redirects:previous";
 
 // A short fingerprint of what is stored, so a save can tell if the list changed since it was opened.
 async function versionOf(stored) {
@@ -133,6 +135,7 @@ async function writeRedirects(request, env, cors) {
     return error(409, "The redirects changed since you opened them. Reload this page, then make your change again.", cors);
   }
   const next = JSON.stringify({ redirects: clean });
+  if (stored !== null) await env.CONTENT.put(REDIRECTS_PREVIOUS_KEY, stored);
   await env.CONTENT.put(REDIRECTS_KEY, next);
   return json({ ok: true, version: await versionOf(next) }, 200, cors);
 }

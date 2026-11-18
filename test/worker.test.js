@@ -187,3 +187,14 @@ test("a storage failure answers with a readable error the browser can see", asyn
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), ORIGIN);
   assert.match((await response.json()).error, /try again/);
 });
+
+test("the list before each redirects save is kept for recovery", async () => {
+  const env = await setup();
+  const cookie = await signIn(env);
+  const put = (redirects) => call(env, "/redirects", { method: "PUT", headers: { Cookie: cookie }, body: JSON.stringify({ redirects }) });
+  const row = (path) => ({ host: "bloomnetworks.net", path, url: "https://example.com" });
+
+  await put([row("discord")]);
+  await put([]);
+  assert.deepEqual(JSON.parse(await env.CONTENT.get("redirects:previous")).redirects.map((r) => r.path), ["discord"]);
+});

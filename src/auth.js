@@ -1,4 +1,3 @@
-// Password check and signed session cookie. Everything uses WebCrypto, which Workers and Node both provide.
 
 const encoder = new TextEncoder();
 export const SESSION_SECONDS = 12 * 60 * 60;
@@ -19,7 +18,6 @@ async function pbkdf2(password, salt, iterations) {
   return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256));
 }
 
-// Stored format: pbkdf2$<iterations>$<salt hex>$<hash hex>  (see scripts/hash-password.mjs)
 export async function hashPassword(password, iterations = 100_000) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   return `pbkdf2$${iterations}$${toHex(salt)}$${toHex(await pbkdf2(password, salt, iterations))}`;

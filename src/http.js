@@ -1,4 +1,3 @@
-// Small helpers for CORS and JSON responses.
 
 export function allowedOrigins(env) {
   return (env.ALLOWED_ORIGINS || "").split(",").map((o) => o.trim()).filter(Boolean);
@@ -17,7 +16,6 @@ export function corsHeaders(request, env) {
   };
 }
 
-// State-changing requests must come from one of our own pages.
 export function isTrustedOrigin(request, env) {
   return allowedOrigins(env).includes(request.headers.get("Origin"));
 }

@@ -93,7 +93,7 @@ test("redirects are public to read and need a sign-in to change", async () => {
   const env = await setup();
   const empty = await call(env, "/redirects", { headers: { Origin: "https://bloomnetworks.net" } });
   assert.equal(empty.headers.get("Access-Control-Allow-Origin"), "*");
-  assert.deepEqual((await empty.json()).redirects.map((r) => r.path), ["discord"]); // only the built-in link
+  assert.deepEqual((await empty.json()).redirects.map((r) => r.path), ["discord"]);
 
   const body = JSON.stringify({ redirects: [{ host: "bloomnetworks.net", path: "/Discord/", url: "https://discord.gg/example" }] });
   assert.equal((await call(env, "/redirects", { method: "PUT", body })).status, 401);
@@ -164,7 +164,6 @@ test("a save from a stale redirects list is refused", async () => {
   const first = await put({ redirects: [row("one")], version: opened });
   assert.equal(first.status, 200);
 
-  // A second tab still holding the old version must not overwrite the newer list.
   assert.equal((await put({ redirects: [], version: opened })).status, 409);
   assert.deepEqual((await (await call(env, "/redirects")).json()).redirects.map((r) => r.path), ["one", "discord"]);
 

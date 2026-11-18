@@ -12,10 +12,8 @@ const PASSWORD_KEY = "admin:password";
 const MIN_PASSWORD_LENGTH = 12;
 const MAX_PASSWORD_LENGTH = 200;
 
-// A password changed from the admin lives in KV and wins over the ADMIN_PASSWORD_HASH secret.
 const storedPasswordHash = async (env) => (await env.CONTENT.get(PASSWORD_KEY)) || env.ADMIN_PASSWORD_HASH;
 
-// Sessions are signed with the current password hash too, so changing the password signs everyone out.
 const sessionSecret = async (env) => `${env.SESSION_SECRET}:${await storedPasswordHash(env)}`;
 
 async function isAdmin(request, env) {
@@ -24,7 +22,6 @@ async function isAdmin(request, env) {
 
 const clientKey = (request) => `login:${request.headers.get("CF-Connecting-IP") || "unknown"}`;
 
-// Counts wrong-password attempts per address; returns a response once the limit is reached.
 async function attemptsLeft(request, env) {
   return (Number(await env.CONTENT.get(clientKey(request))) || 0) < LOGIN_ATTEMPTS;
 }
@@ -76,7 +73,6 @@ async function changePassword(request, env, cors) {
   return json({ ok: true }, 200, { ...cors, "Set-Cookie": sessionCookie(await createSession(await sessionSecret(env))) });
 }
 
-// Unpublished posts are drafts: only a signed-in admin asking with ?drafts gets them, and never from a shared cache.
 async function readContent(site, request, env, cors) {
   const stored = await env.CONTENT.get(`content:${site}`);
   if (stored === null) return error(404, "no saved content", cors);
@@ -101,16 +97,13 @@ async function writeContent(site, request, env, cors) {
 }
 
 const REDIRECTS_KEY = "redirects";
-// The list as it was before the latest save, kept so a bad save can be undone.
 const REDIRECTS_PREVIOUS_KEY = "redirects:previous";
 
-// A short fingerprint of what is stored, so a save can tell if the list changed since it was opened.
 async function versionOf(stored) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(stored ?? ""));
   return [...new Uint8Array(digest).slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Public: every site's 404 page reads this to forward short links.
 async function readRedirects(env) {
   const stored = await env.CONTENT.get(REDIRECTS_KEY);
   const { redirects } = stored ? JSON.parse(stored) : { redirects: [] };
@@ -130,7 +123,6 @@ async function writeRedirects(request, env, cors) {
     return error(400, problem.message, cors);
   }
   const stored = await env.CONTENT.get(REDIRECTS_KEY);
-  // A tab that opened an older list must not overwrite a newer one.
   if (body.version !== undefined && body.version !== (await versionOf(stored))) {
     return error(409, "The redirects changed since you opened them. Reload this page, then make your change again.", cors);
   }
@@ -168,7 +160,6 @@ async function route(request, env, cors) {
 
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
-  // Uploaded images are public and cacheable; everything else answers to our own origins only.
   const media = pathname.match(/^\/media\/([\w.-]+)$/);
   if (media && request.method === "GET") return readImage(media[1], env);
 
@@ -186,7 +177,6 @@ async function route(request, env, cors) {
   }
   if (content && request.method === "GET") return readContent(content[1], request, env, cors);
 
-  // Everything below needs a signed-in admin.
   if (pathname === "/password" && request.method === "POST") {
     if (!(await isAdmin(request, env))) return error(401, "sign in first", cors);
     return changePassword(request, env, cors);
@@ -209,7 +199,6 @@ export default {
     try {
       return await route(request, env, cors);
     } catch (problem) {
-      // Without this the browser only sees a dropped request and reports "Failed to fetch".
       console.error(problem);
       return error(500, "The server could not finish that. Wait a moment and try again.", cors);
     }

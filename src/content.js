@@ -1,4 +1,3 @@
-// The shape the front end expects. Anything else is rejected before it reaches storage.
 
 export const SITES = ["ch", "ds"];
 export const MAX_CONTENT_BYTES = 600_000;
@@ -6,10 +5,8 @@ export const MAX_CONTENT_BYTES = 600_000;
 const ENTRY_TYPES = new Set(["show", "heading", "recap"]);
 const isText = (value, max) => typeof value === "string" && value.length <= max;
 
-// Images are either shipped with the site or uploaded to /media on this Worker.
 const isImageUrl = (value) => isText(value, 500) && (/^assets\/img\/[\w./-]+$/.test(value) || /^https:\/\/[^\s"'<>]+$/.test(value));
 
-// A banner link is a web address or a page on the site itself (#schedule); anything else is dropped.
 const isLink = (value) => isText(value, 500) && (/^https?:\/\/[^\s"'<>]+$/i.test(value) || /^#[\w/-]+$/.test(value));
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,79}$/;
